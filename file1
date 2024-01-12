@@ -35,3 +35,13 @@ public List<Map<String, Object>> executeQueryAndGetResult(String file, Object[] 
         return resultList;
     }
 
+
+ # Assert that the result is not empty
+  * assert result.size() > 0
+
+  # Assert specific field value in the first row (if expecting a specific value)
+  * match result[0].caterpillar_record_identifier == identifier
+
+  # Assert the structure of the response (if the structure is known)
+  * match each result contains { caterpillar_record_identifier: '#string', profile_identifier: '#string' }
+
