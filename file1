@@ -1,0 +1,37 @@
+public List<Map<String, Object>> executeQueryAndGetResult(String file, Object[] params) throws SQLException {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = DataSourceUtils.getConnection(dataSource);
+            String sql = StreamUtils.copyToString(new ClassPathResource(file).getInputStream(), StandardCharsets.UTF_8);
+            preparedStatement = connection.prepareStatement(sql);
+
+            if (params != null) {
+                for (int i = 0; i < params.length; i++) {
+                    preparedStatement.setObject(i + 1, params[i]);
+                }
+            }
+
+            resultSet = preparedStatement.executeQuery();
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            int columnCount = metaData.getColumnCount();
+
+            while (resultSet.next()) {
+                Map<String, Object> row = new HashMap<>();
+                for (int i = 1; i <= columnCount; i++) {
+                    row.put(metaData.getColumnName(i), resultSet.getObject(i));
+                }
+                resultList.add(row);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error executing query: " + e.getMessage(), e);
+        } finally {
+            if (resultSet != null) resultSet.close();
+            if (preparedStatement != null) preparedStatement.close();
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
+        return resultList;
+    }
+
